@@ -12,7 +12,13 @@ add_executable(
   src/Base36.cpp
   src/Imx.cpp
   src/Downloader.cpp
+  src/AtomicCounter.cpp
+  src/Console.cpp
+  src/WorkerPool.cpp
 )
 
-target_link_libraries(imx curl)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+target_link_libraries(imx PRIVATE Threads::Threads curl)
+
 set(EXECUTABLE_OUTPUT_PATH "bin")

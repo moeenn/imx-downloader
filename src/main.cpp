@@ -1,8 +1,14 @@
 #include "./ArgsParser.hpp"
+#include "./Console.hpp"
 #include "./Downloader.hpp"
 #include "./Imx.hpp"
+#include "./WorkerPool.hpp"
 #include <iostream>
+#include <sstream>
+#include <string>
 #include <vector>
+
+#define MAX_THREADS 2
 
 int main(int argc, char *argv[]) {
   ArgsParser parser{argc, argv};
@@ -18,13 +24,22 @@ int main(int argc, char *argv[]) {
   }
 
   Imx imx{start, end, year};
+  WorkerPool pool{MAX_THREADS};
 
   uint count = imx.imageCount();
   uint i = 1;
 
   for (const auto &url : imx.urlRange()) {
-    std::cout << '[' << i << " of " << count << "] " << url.second << std::endl;
-    Downloader::download(url.first, url.second);
+    pool.add([&]() {
+      std::stringstream msg;
+      msg << '[' << i << " of " << count << "] " << url.second;
+      Console::log(msg.str());
+
+      Downloader::download(url.first, url.second);
+    });
+
     i++;
   }
+
+  pool.start();
 }
